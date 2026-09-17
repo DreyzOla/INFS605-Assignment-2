@@ -50,5 +50,20 @@ git add . - Stage all changed files
 git commit -m "Brief description of work done"
 git push.  - push your code into github
 
-# Create personal branch
-git checkout -b name-of-your-branch
+# Create personal branch and other procedures
+1 git checkout -b name-of-your-branch
+2 First time pushing this specific branch: git push --set-upstream origin feature-branch-name
+3 For any subsequent pushes on this branch: git push
+
+# Create & Merge Pull Request on GitHub
+4 Open your repository on GitHub.
+
+5 Click Compare & pull request next to your recently pushed branch.
+
+6 Review your code diff, add a brief title/description, and click Create pull request.
+
+7 Once reviewed or verified, click Merge pull request, then Confirm merge.
+
+# Pull Merged Changes into Local main
+8 git checkout main or manually select main
+9 git pull
