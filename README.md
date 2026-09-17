@@ -48,5 +48,5 @@ git status
 # Stage, Commit, and Push Your Changes
 git add . - Stage all changed files
 git commit -m "Brief description of work done"
-git push.  - push your code into github
+git push  - push your code into github
 
