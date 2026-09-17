@@ -50,3 +50,5 @@ git add . - Stage all changed files
 git commit -m "Brief description of work done"
 git push.  - push your code into github
 
+# Create personal branch
+git checkout -b name-of-your-branch
