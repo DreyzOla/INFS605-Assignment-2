@@ -67,3 +67,15 @@ git push.  - push your code into github
 # Pull Merged Changes into Local main
 8 git checkout main or manually select main
 9 git pull
+
+# Recommended Workflow Going Forward
+
+10 Keep main as your clean, production-ready code.
+
+11 Delete old feature branches on GitHub after their Pull Requests are merged by clicking the delete icon.
+
+12 Delete old feature branches in VS code by switching to main branch and then run: 
+git fetch -p (Clean up deleted remote branch references)
+git branch -d dreyz/assignment2 (Delete the old branch locally)
+
+13 For each new feature or step, pull main and create a single-purpose branch (e.g., git checkout -b build-input-form).
