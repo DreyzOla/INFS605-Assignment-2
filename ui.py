@@ -51,7 +51,7 @@ class ApplicationDirectory:
         self.search_var.trace_add("write", self.filter_table)
 
         self.search_entry = tk.Entry(search_frame, textvariable=self.search_var, font=("Geist Mono", 9), 
-        width=52, relief="solid", bd=1, fg="#9CA3AF")
+        width=52, relief="solid", bd=1, fg="#9CA3AF")#highlightthickness=0
         self.search_entry.pack(side=tk.LEFT, padx=(0, 15), ipady=4)
         self.search_entry.insert(0, "🔍 Search Directory...")
 
