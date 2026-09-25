@@ -17,7 +17,6 @@ class ApplicationDirectory:
         # --- Search & Actions Toolbar ---
         self.create_toolbar()
 
-
         # --- Table Section ---
         self.create_table()
 
@@ -27,6 +26,9 @@ class ApplicationDirectory:
 
         # Load data on startup
         self.refresh_table()
+
+        # Track selected item index for edits/deletions
+        self.selected_item_id = None
 
     def create_header(self):
         title_label = tk.Label(
@@ -70,11 +72,11 @@ class ApplicationDirectory:
             edit_border_frame, text="Edit Selected", 
             bg="white", fg="#111827", font=("Arial", 9), 
             relief="flat", bd=0, padx=12, pady=7,
-            state=tk.DISABLED
+            state=tk.DISABLED, command=self.edit_record
         )
         self.edit_button.pack(padx=1, pady=1) # 1px padding creates the sharp border line
 
-        # --- Delete Button with Guaranteed Square Red Corners ---
+        # --- Delete Button with Command Wired ---
         delete_border_frame = tk.Frame(button_frame, bg="#D9534F", bd=0)
         delete_border_frame.pack(side=tk.LEFT)
 
@@ -82,16 +84,16 @@ class ApplicationDirectory:
             delete_border_frame, text="Delete Selected", 
             bg="white", fg="#D9534F", font=("Arial", 9), 
             relief="flat", bd=0, padx=12, pady=7,
-            state=tk.DISABLED
+            state=tk.DISABLED, command=self.delete_record
         )
-        self.delete_button.pack(padx=1, pady=1) 
+        self.delete_button.pack(padx=1, pady=1)
 
     def on_row_select(self, event):
         """Enables or disables edit/delete buttons based on whether a row is selected."""
         selected_items = self.tree.selection()
         if selected_items:
-            self.edit_button.config(state=tk.NORMAL, cursor="hand2")
-            self.delete_button.config(state=tk.NORMAL, cursor="hand2")
+            self.edit_button.config(state=tk.NORMAL)
+            self.delete_button.config(state=tk.NORMAL)
         else:
             self.edit_button.config(state=tk.DISABLED, cursor="")
             self.delete_button.config(state=tk.DISABLED, cursor="")
@@ -313,8 +315,7 @@ class ApplicationDirectory:
         self.clear_button = tk.Button(
             clear_border_frame, text="Clear", 
             bg="#FFFFFF", fg="#111827", font=("Geist Mono", 9), 
-            relief="flat", bd=0, padx=16, pady=6, 
-            cursor="hand2", command=self.clear_form
+            relief="flat", bd=0, padx=16, pady=6, command=self.clear_form
         )
         self.clear_button.pack(padx=1, pady=1)
     
@@ -338,6 +339,7 @@ class ApplicationDirectory:
     def show_custom_message(self, title, message):
         """A compact, beginner-friendly custom popup window."""
         dialog = tk.Toplevel(self.root)
+        dialog.overrideredirect(True)
         dialog.title(title)
         dialog.geometry("320x160")
         dialog.resizable(False, False)
@@ -359,6 +361,142 @@ class ApplicationDirectory:
         command=dialog.destroy, padx=20, pady=5).pack(pady=(0, 20), expand=False)
 
         self.root.wait_window(dialog)
+
+
+    #-------------------- Delete selected record and remove details from CSV file ---------------------
+    def delete_record(self):
+        """Pre-populates a confirmation popup with selected record details and deletes it."""
+        # 1. Check if a row is actually selected in the table
+        selected = self.tree.selection()
+        if not selected:
+            return
+
+        # 2. Get the raw values from the selected row and clean up extra padding spaces using a standard loop
+        raw_row = self.tree.item(selected[0], "values")
+        values = []
+        for v in raw_row:
+            values.append(v.strip())
+
+        # 3. Load all apps and find the exact index of the matching record using a clear loop
+        apps = data_manager.load_applications()
+        app_index = None
+        for index, app in enumerate(apps):
+            if app == values:
+                app_index = index
+                break
+
+        if app_index is None:
+            return
+
+        target_app = apps[app_index]
+
+        # 4. Create the confirmation popup window
+        dialog = tk.Toplevel(self.root)
+        dialog.overrideredirect(True)
+        dialog.title("Confirm Deletion")
+        dialog.geometry("380x220")
+        dialog.resizable(False, False)
+        dialog.configure(bg="#FFFFFF")
+        dialog.transient(self.root)
+        dialog.grab_set()
+
+        # Center the popup window on the screen
+        dialog.update_idletasks()
+        x = self.root.winfo_x() + (self.root.winfo_width() // 2) - 190
+        y = self.root.winfo_y() + (self.root.winfo_height() // 2) - 110
+        dialog.geometry(f"+{x}+{y}")
+
+        # Warning text label
+        tk.Label(
+            dialog, 
+            text="Are you sure you want to delete this record?", 
+            bg="#FFFFFF", 
+            fg="#111827", 
+            font=("Geist Mono", 9, "bold")
+        ).pack(pady=(20, 10))
+
+        # 5. Display the details of the app being deleted inside a styled box
+        details_frame = tk.Frame(dialog, bg="#F9FAFB", padx=10, pady=10, relief="solid", bd=1)
+        details_frame.pack(fill=tk.X, padx=20, pady=5)
+
+        labels = [("App", target_app[0]), ("Category", target_app[1]), ("Owner", target_app[2]), ("URL", target_app[3])]
+        for label_text, val in labels:
+            tk.Label(
+                details_frame, 
+                text=f"{label_text}: {val}", 
+                bg="#F9FAFB", 
+                fg="#111827", 
+                font=("Geist Mono", 8), 
+                anchor="w"
+            ).pack(fill=tk.X)
+
+        # 6. Action buttons frame (Delete vs Cancel)
+        btn_frame = tk.Frame(dialog, bg="#FFFFFF")
+        btn_frame.pack(pady=15)
+
+        def confirm_delete():
+            # Remove item from list, save back to CSV, refresh table, and lock buttons
+            apps.pop(app_index)
+            data_manager.save_all_applications(apps)
+            self.refresh_table()
+            self.delete_button.config(state=tk.DISABLED, cursor="")
+            self.edit_button.config(state=tk.DISABLED, cursor="")
+            dialog.destroy()
+            self.show_custom_message("Success", "Application record deleted successfully.")
+
+        tk.Button(
+            btn_frame, text="Delete", bg="#EF4444", fg="#111827", font=("Geist Mono", 9), 
+            command=confirm_delete, padx=15, pady=4, relief="flat", cursor="hand2"
+        ).pack(side=tk.LEFT, padx=5)
+        
+        tk.Button(
+            btn_frame, text="Cancel", bg="#E5E7EB", fg="#111827", font=("Geist Mono", 9), 
+            command=dialog.destroy, padx=15, pady=4, relief="flat", cursor="hand2"
+        ).pack(side=tk.LEFT, padx=5)
+
+        self.root.wait_window(dialog)
+
+    def edit_record(self):
+        """Loads the selected record's data into the form fields for editing."""
+        # 1. Check if a row is selected
+        selected = self.tree.selection()
+        if not selected:
+            return
+
+        # 2. Get values from the selected row and strip padding spaces using a loop
+        raw_row = self.tree.item(selected[0], "values")
+        values = []
+        for v in raw_row:
+            values.append(v.strip())
+
+        # 3. Find the exact matching index in the data list
+        apps = data_manager.load_applications()
+        app_index = None
+        for index, app in enumerate(apps):
+            if app == values:
+                app_index = index
+                break
+
+        if app_index is None:
+            return
+
+        target_app = apps[app_index]
+
+        # 4. Cache this index so save_record knows we are updating an existing entry
+        self.selected_item_id = app_index
+
+        # 5. Populate the form entry fields with the record's current data
+        fields_data = [
+            (self.app_name_entry, target_app[0]),
+            (self.category_entry, target_app[1]),
+            (self.owner_entry, target_app[2]),
+            (self.url_entry, target_app[3])
+        ]
+
+        for entry, val in fields_data:
+            entry.delete(0, tk.END)
+            entry.insert(0, val)
+            entry.config(fg="#111827")  # Switch text color from placeholder gray to active dark text
 
     def save_record(self):
         app_name = self.app_name_entry.get().strip()
