@@ -56,26 +56,29 @@ git push.  - push your code into github
 3 For any subsequent pushes on this branch: git push
 
 # Create & Merge Pull Request on GitHub
-4 Open your repository on GitHub.
+1 Open your repository on GitHub.
 
-5 Click Compare & pull request next to your recently pushed branch.
+2 Click Compare & pull request next to your recently pushed branch.
 
-6 Review your code diff, add a brief title/description, and click Create pull request.
+3 Review your code diff, add a brief title/description, and click Create pull request.
 
-7 Once reviewed or verified, click Merge pull request, then Confirm merge.
+4 Once reviewed or verified, click Merge pull request, then Confirm merge.
 
 # Pull Merged Changes into Local main
-8 git checkout main or manually select main
-9 git pull
+1 git checkout main or manually select main
+2 git pull
 
-# Recommended Workflow Going Forward
+# Recommended Workflow Process
 
-10 Keep main as your clean, production-ready code.
+1 Keep main as the clean, production-ready code.
 
-11 Delete old feature branches on GitHub after their Pull Requests are merged by clicking the delete icon.
+2 Delete old feature branches on GitHub after their Pull Requests are merged by clicking the delete icon.
 
-12 Delete old feature branches in VS code by switching to main branch and then run: 
+3 Delete old feature branches in VS code by switching to main branch and then run: 
 git fetch -p (Clean up deleted remote branch references)
 git branch -d dreyz/assignment2 (Delete the old branch locally)
 
-13 For each new feature or step, pull main and create a single-purpose branch (e.g., git checkout -b build-input-form).
+4 For each new feature, modification to code or step, pull main and create a single-purpose branch (e.g., git checkout -b build-input-form).
+
+
+#NOTE: if anything is unclear, gemini or chatgpt can clear up the questions.
